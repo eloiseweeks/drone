@@ -1,6 +1,12 @@
+var tracker;
+
 function init() {
-    var tracker = initTracker("#example");
-    tracking.track("#example .drone", tracker);
+    // if using drone
+    tracker = initTracker("#droneView");
+    droneConnection.streamImage(tracker, "#droneView .drone");
+
+   // tracker = initTracker("#example");
+  // tracking.track("#example .drone", tracker);
 }
 
 function initTracker(element) {
@@ -11,15 +17,16 @@ function initTracker(element) {
     TrackerUtils.addTrackingColor("#A94A45", "red", tracker);
     TrackerUtils.startTrackingColors(tracker);
 
-
     // Whenever there is a new color detected, mark them
     tracker.on('track', function(event) {
         console.log(event.data);
-        markColors(event.data,element);
+        markColors(event.data, element);
+        decideDroneMovement(event.data);
     });
 
     return tracker;
 }
+
 function markColors(colors, element) {
     var canvas = $(element + ' .canvas').get(0);
     var context = canvas.getContext('2d');
@@ -36,13 +43,37 @@ function drawRectangle(rect, context) {
 }
 
 
-// Write the information out in text
 function writeRectangle(rect, element) {
     $(element)
         .append("<p>")
         .append(rect.color + ": " + rect.width + "X" + rect.height)
         .append(" @ " + rect.x + ":" + rect.y)
         .append("</p>");
+}
+
+
+function decideDroneMovement(colors) {
+    var move = {
+        left: false,
+        right: false
+    };
+
+    colors.forEach(function(rectangle) {
+        if (rectangle.color === "green") {
+            if (rectangle.width > 250) {
+                move.left = true;
+            }
+        }
+
+        else if (rectangle.color === "red") {
+            if (rectangle.width > 250) {
+                move.right = true;
+            }
+        }
+
+    });
+    console.log("Move", move);
+    droneConnection.send(move);
 }
 
 window.addEventListener("load", init);

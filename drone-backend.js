@@ -1,5 +1,6 @@
 var Cylon = require('cylon');
 var bot;
+var utils = require('./utils/droneUtils.js');
 
 // Initialise the robot
 Cylon.robot()
@@ -35,7 +36,9 @@ function fly(robot) {
     bot.nav.on("batteryChange", function(data) {
         console.log("Battery level:", data);
     });
-
+    bot.drone.getPngStream()
+        .on("data", utils.sendFrame);
+    utils.instructionListener.on('move', moveDrone);
     bot.drone.disableEmergency();
     bot.drone.ftrim();
     bot.drone.takeoff();
@@ -51,5 +54,27 @@ function fly(robot) {
     after(15*1000, function() {
         bot.drone.stop();
     });
+
+}
+function moveDrone(move) {
+    if (move.left) {
+        console.log("Moving left");
+        bot.drone.left(0.2);
+        bot.drone.forward(0);
+        after(0.5*1000, function() {
+            bot.drone.left(0);
+            bot.drone.forward(0.05);
+        });
+    }
+
+    if (move.right) {
+        console.log("Moving right");
+        bot.drone.right(0.2);
+        bot.drone.forward(0);
+        after(0.5*1000, function() {
+            bot.drone.right(0);
+            bot.drone.forward(0.05);
+        });
+    }
 }
 Cylon.start();

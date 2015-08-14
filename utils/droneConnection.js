@@ -43,11 +43,11 @@ var droneConnection = (function() {
         droneWebSocket(droneAddress);
         tracker = colorTracker;
         updatingElement = element;
-    }
+    };
 
     my.send = function(move) {
         websocket.send(JSON.stringify(move))
-    }
+    };
 
     return my;
 
